@@ -55,3 +55,21 @@ export async function createProduct(
 
   return result.rows[0];
 }
+
+export async function findAllProducts(): Promise<Product[]> {
+  const query = `
+    SELECT
+      id,
+      name,
+      price,
+      category,
+      visible,
+      created_at AS "createdAt",
+      updated_at AS "updatedAt"
+    FROM products;
+  `;
+
+  const result = await pool.query<Product>(query);
+
+  return result.rows;
+}

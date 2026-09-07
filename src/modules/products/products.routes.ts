@@ -1,6 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 
-import { createProductController } from './products.controller.js';
+import {
+  createProductController,
+  listProductsController,
+} from './products.controller.js';
 import {
   CreateProductBodySchema,
   type CreateProductBody,
@@ -16,4 +19,5 @@ export async function productsRoutes(app: FastifyInstance) {
     },
     createProductController,
   );
+  app.get('/products', listProductsController);
 }
