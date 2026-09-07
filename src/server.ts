@@ -1,10 +1,11 @@
 import { buildApp } from './app.js';
+import { env } from './config/env.js';
 
 const app = buildApp();
 
 try {
   await app.listen({
-    port: 3333,
+    port: env.port,
     host: '0.0.0.0',
   });
 } catch (error) {

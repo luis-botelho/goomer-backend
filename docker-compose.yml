@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: goomer-menu-postgres
+    environment:
+      POSTGRES_USER: goomer
+      POSTGRES_PASSWORD: goomer
+      POSTGRES_DB: goomer_menu
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U goomer -d goomer_menu"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
