@@ -1,13 +1,58 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
-generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
-}
-
 datasource db {
   provider = "postgresql"
+}
+
+enum ProductCategory {
+  STARTER
+  MAIN_COURSE
+  DESSERT
+  BEVERAGE
+
+  @@map("product_category")
+}
+
+model Product {
+  id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String          @db.VarChar
+  price     Decimal         @db.Decimal(10, 2)
+  category  ProductCategory
+  visible   Boolean         @default(true)
+
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime        @default(now()) @map("updated_at") @db.Timestamp(6)
+
+  promotions Promotion[]
+
+  @@map("products")
+}
+
+model Promotion {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productId        String   @map("product_id") @db.Uuid
+  description      String   @db.VarChar
+  promotionalPrice Decimal  @map("promotional_price") @db.Decimal(10, 2)
+
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime        @default(now()) @map("updated_at") @db.Timestamp(6)
+
+  product   Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  schedules PromotionSchedule[]
+
+  @@index([productId])
+  @@map("promotions")
+}
+
+model PromotionSchedule {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  promotionId String   @map("promotion_id") @db.Uuid
+
+  weekday  Int      @db.SmallInt
+  startTime DateTime @map("start_time") @db.Time(0)
+  endTime   DateTime @map("end_time") @db.Time(0)
+
+  promotion Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@index([promotionId])
+  @@index([weekday, startTime, endTime])
+  @@map("promotion_schedules")
 }
