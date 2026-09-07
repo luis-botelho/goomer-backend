@@ -2,6 +2,7 @@ import type { CreateProductBody } from './products.schema.js';
 
 import {
   createProduct,
+  findAllProducts,
   type Product,
 } from './products.repository.js';
 
@@ -14,4 +15,8 @@ export async function createProductService(
     category: input.category,
     visible: input.visible ?? true,
   });
+}
+
+export async function listProductsService(): Promise<Product[]> {
+  return findAllProducts();
 }
