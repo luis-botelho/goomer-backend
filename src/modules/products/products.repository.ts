@@ -137,3 +137,17 @@ export async function updateProduct(
 
   return result.rows[0] ?? null;
 }
+
+export async function deleteProduct(
+  id: string,
+): Promise<boolean> {
+  const query = `
+    DELETE FROM products
+    WHERE id = $1
+    RETURNING id;
+  `;
+
+  const result = await pool.query(query, [id]);
+
+  return (result.rowCount ?? 0) > 0;
+}

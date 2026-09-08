@@ -8,6 +8,7 @@ import type {
 
 import {
   createProductService,
+  deleteProductService,
   getProductByIdService,
   listProductsService,
   updateProductService,
@@ -24,6 +25,10 @@ type GetProductByIdRequest = FastifyRequest<{
 type UpdateProductRequest = FastifyRequest<{
   Params: ProductParams;
   Body: UpdateProductBody;
+}>;
+
+type DeleteProductRequest = FastifyRequest<{
+  Params: ProductParams;
 }>;
 
 export async function createProductController(
@@ -63,4 +68,13 @@ export async function updateProductController(
   );
 
   return reply.status(200).send(product);
+}
+
+export async function deleteProductController(
+  request: DeleteProductRequest,
+  reply: FastifyReply,
+) {
+  await deleteProductService(request.params.id);
+
+  return reply.status(204).send();
 }
