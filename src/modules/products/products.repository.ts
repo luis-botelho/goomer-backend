@@ -73,3 +73,24 @@ export async function findAllProducts(): Promise<Product[]> {
 
   return result.rows;
 }
+
+export async function findProductById(
+  id: string,
+): Promise<Product | null> {
+  const query = `
+    SELECT
+      id,
+      name,
+      price,
+      category,
+      visible,
+      created_at AS "createdAt",
+      updated_at AS "updatedAt"
+    FROM products
+    WHERE id = $1;
+  `;
+
+  const result = await pool.query<Product>(query, [id]);
+
+  return result.rows[0] ?? null;
+}

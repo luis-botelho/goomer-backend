@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import { productsRoutes } from './modules/products/products.routes.js';
+import { errorHandler } from './shared/errors/error-handler.js';
 
 export function buildApp() {
   const app = Fastify({
@@ -14,6 +15,7 @@ export function buildApp() {
   });
 
   app.register(productsRoutes);
+  app.setErrorHandler(errorHandler);
   
   return app;
 }
