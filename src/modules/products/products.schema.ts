@@ -27,4 +27,17 @@ export const CreateProductBodySchema = Type.Object(
   },
 );
 
+export const ProductParamsSchema = Type.Object(
+  {
+    id: Type.String({
+      format: 'uuid',
+    }),
+  },
+  {
+    additionalProperties: false,
+  },
+);
+
+export type ProductParams = Static<typeof ProductParamsSchema>;
+
 export type CreateProductBody = Static<typeof CreateProductBodySchema>;
