@@ -5,6 +5,7 @@ import type {
 
 import {
   createProduct,
+  deleteProduct,
   findAllProducts,
   findProductById,
   updateProduct,
@@ -58,4 +59,14 @@ export async function updateProductService(
   }
 
   return product;
+}
+
+export async function deleteProductService(
+  id: string,
+): Promise<void> {
+  const deleted = await deleteProduct(id);
+
+  if (!deleted) {
+    throw new NotFoundError('Product not found');
+  }
 }

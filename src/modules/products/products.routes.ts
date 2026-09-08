@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 
 import {
   createProductController,
+  deleteProductController,
   getProductByIdController,
   listProductsController,
   updateProductController,
@@ -51,6 +52,16 @@ export async function productsRoutes(app: FastifyInstance) {
       },
     },
     updateProductController,
+  );
+
+  app.delete<{ Params: ProductParams }>(
+    '/products/:id',
+    {
+      schema: {
+        params: ProductParamsSchema,
+      },
+    },
+    deleteProductController,
   );
 
 }
