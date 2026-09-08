@@ -4,13 +4,16 @@ import {
   createProductController,
   getProductByIdController,
   listProductsController,
+  updateProductController,
 } from './products.controller.js';
 
 import {
   CreateProductBodySchema,
   ProductParamsSchema,
+  UpdateProductBodySchema,
   type CreateProductBody,
   type ProductParams,
+  type UpdateProductBody,
 } from './products.schema.js';
 
 export async function productsRoutes(app: FastifyInstance) {
@@ -35,5 +38,19 @@ export async function productsRoutes(app: FastifyInstance) {
   },
   getProductByIdController,
 );
-  
+
+  app.patch<{
+    Params: ProductParams;
+    Body: UpdateProductBody;
+  }>(
+    '/products/:id',
+    {
+      schema: {
+        params: ProductParamsSchema,
+        body: UpdateProductBodySchema,
+      },
+    },
+    updateProductController,
+  );
+
 }

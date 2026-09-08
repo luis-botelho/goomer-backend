@@ -23,6 +23,13 @@ export interface Product {
   updatedAt: Date;
 }
 
+export interface UpdateProductRecord {
+  name?: string;
+  price?: number;
+  category?: ProductCategory;
+  visible?: boolean;
+}
+
 export async function createProduct(
   data: CreateProductRecord,
 ): Promise<Product> {
@@ -91,6 +98,42 @@ export async function findProductById(
   `;
 
   const result = await pool.query<Product>(query, [id]);
+
+  return result.rows[0] ?? null;
+}
+
+export async function updateProduct(
+  id: string,
+  data: UpdateProductRecord,
+): Promise<Product | null> {
+  const query = `
+    UPDATE products
+    SET
+      name = COALESCE($2, name),
+      price = COALESCE($3, price),
+      category = COALESCE($4, category),
+      visible = COALESCE($5, visible),
+      updated_at = NOW()
+    WHERE id = $1
+    RETURNING
+      id,
+      name,
+      price,
+      category,
+      visible,
+      created_at AS "createdAt",
+      updated_at AS "updatedAt";
+  `;
+
+  const values = [
+    id,
+    data.name ?? null,
+    data.price ?? null,
+    data.category ?? null,
+    data.visible ?? null,
+  ];
+
+  const result = await pool.query<Product>(query, values);
 
   return result.rows[0] ?? null;
 }
