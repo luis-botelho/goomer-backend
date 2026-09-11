@@ -1,5 +1,7 @@
 import Fastify from 'fastify';
+import { menuRoutes } from './modules/menu/menu.routes.js';
 import { productsRoutes } from './modules/products/products.routes.js';
+import { promotionsRoutes } from './modules/promotions/promotions.routes.js';
 import { errorHandler } from './shared/errors/error-handler.js';
 
 export function buildApp() {
@@ -7,7 +9,6 @@ export function buildApp() {
     logger: true,
   });
 
-  // Rota temporária apenas para provar que a aplicação está funcionando.
   app.get('/health', async () => {
     return {
       status: 'ok',
@@ -15,7 +16,9 @@ export function buildApp() {
   });
 
   app.register(productsRoutes);
+  app.register(promotionsRoutes);
+  app.register(menuRoutes);
   app.setErrorHandler(errorHandler);
-  
+
   return app;
 }

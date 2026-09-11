@@ -5,6 +5,7 @@ import type {
 } from 'fastify';
 
 import { NotFoundError } from './not-found-error.js';
+import { ValidationError } from './validation-error.js';
 
 export function errorHandler(
   error: FastifyError,
@@ -15,6 +16,14 @@ export function errorHandler(
     return reply.status(404).send({
       statusCode: 404,
       error: 'Not Found',
+      message: error.message,
+    });
+  }
+
+  if (error instanceof ValidationError) {
+    return reply.status(400).send({
+      statusCode: 400,
+      error: 'Bad Request',
       message: error.message,
     });
   }
