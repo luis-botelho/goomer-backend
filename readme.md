@@ -1,114 +1,208 @@
-# Desafio Técnico - Pessoa Desenvolvedora Back-end
+# Goomer Menu API
 
-A avaliação será baseada na sua capacidade de escrever um código simples, de fácil manutenção, **pela quantidade e qualidade das funcionalidades que você entregar**.
+API RESTful para gerenciamento de produtos, promoções e cardápio de restaurantes.
 
-## Instruções
+## Funcionalidades
 
-- **Nome do Projeto:** Goomer Menu API
-- **Objetivo do Projeto:** Criar uma API capaz de gerenciar os produtos, promoções e o cardápio de um restaurante.
+### Produtos (CRUD)
 
-### Tecnologias e Requisitos
+| Método | Rota               | Descrição               |
+|--------|--------------------|-------------------------|
+| POST   | `/products`        | Criar produto           |
+| GET    | `/products`        | Listar todos os produtos|
+| GET    | `/products/:id`    | Buscar produto por ID   |
+| PATCH  | `/products/:id`    | Atualizar produto       |
+| DELETE | `/products/:id`    | Excluir produto         |
 
-- **Node.js**
-    - O projeto deve ser desenvolvido em **TypeScript**
-    - **Não** usar frameworks que impõem arquitetura (ex.: NestJS, Adonis)
-    - Sugestões: **Fastify** ou **Express**
-- **Banco de Dados SQL**
-    - **Não** utilizar o query builder do ORM para as consultas. As consultas devem ser implementadas em SQL puro.
-    - Utilize ORM para as migrations.
-    - Escolha entre: **PostgreSQL** ou **MySQL**
+**Campos do produto:**
+- `name` (string, obrigatório) — Nome do produto
+- `price` (number, obrigatório) — Preço do produto (maior que 0)
+- `category` (enum, obrigatório) — `STARTER`, `MAIN_COURSE`, `DESSERT` ou `BEVERAGE`
+- `visible` (boolean, opcional, padrão `true`) — Controla visibilidade no cardápio
 
-## Desafio
+### Promoções (CRUD)
 
-- A sua API deverá ser capaz de:
-    - Criar, listar, atualizar e excluir produtos
-    - Criar, listar, atualizar e excluir promoções
-    - Retornar o cardápio com as informações consolidadas
-    - Controlar visibilidade do produto
-    - Aplicar promoções apenas nos horários e dias definidos
-    - Permitir gerenciar a ordenação dos produtos no cardápio *(opcional)*
-    - Tratar *timezone* para restaurantes localizados em diferentes estados *(opcional)*
+| Método | Rota                  | Descrição                 |
+|--------|-----------------------|---------------------------|
+| POST   | `/promotions`         | Criar promoção            |
+| GET    | `/promotions`         | Listar todas as promoções |
+| GET    | `/promotions/:id`     | Buscar promoção por ID    |
+| PATCH  | `/promotions/:id`     | Atualizar promoção        |
+| DELETE | `/promotions/:id`     | Excluir promoção          |
 
-### Campos esperados do produto
+**Campos da promoção:**
+- `productId` (UUID, obrigatório) — ID do produto associado
+- `description` (string, obrigatório) — Descrição da promoção
+- `promotionalPrice` (number, obrigatório) — Preço promocional (maior que 0)
+- `schedules` (array, obrigatório) — Lista de horários da promoção
+  - `weekday` (integer 0-6) — Dia da semana (0=Domingo, 6=Sábado)
+  - `startTime` (HH:mm) — Horário de início
+  - `endTime` (HH:mm) — Horário de término (mínimo 15min após início)
 
-- Nome do produto
-- Preço do produto
-- Categoria (pode ser do tipo: Entradas, Pratos principais, Sobremesas ou Bebidas)
-- *Flag* de visibilidade (Visível/Invisível)
+### Cardápio
 
-### Campos esperados da promoção
+| Método | Rota    | Descrição                                    |
+|--------|---------|----------------------------------------------|
+| GET    | `/menu` | Retorna cardápio consolidado com promoções   |
 
-- Descrição da promoção (ex.: "*Chopp* pela metade do preço")
-- Preço promocional
-- Dias da semana e horários em que a promoção deve estar ativa
+O endpoint `/menu` retorna apenas **produtos visíveis** com as promoções ativas no momento atual (baseado no dia da semana e horário do servidor). Se houver múltiplas promoções para um mesmo produto no horário, é selecionada a de menor preço.
 
-### **Formato de horários**
+### Health Check
 
-- É necessário tratar os campos que indicam horários de disponibilidade dos produtos e horário para as promoções.
-- Os campos devem possuir o formato `HH:mm`.
-- Os horários devem possuir intervalo mínimo de 15 minutos.
+| Método | Rota      | Descrição       |
+|--------|-----------|-----------------|
+| GET    | `/health` | Status da API   |
 
-## Descrição das funcionalidades
+## Tecnologias
 
-- **Produto visível/invisível:** Permite ao restaurante esconder produtos temporariamente sem excluí-los.
-- **Promoção por produto:** Permite criar campanhas como *“Happy hour — Chopp em dobro toda quarta-feira das 18h às 20h”*.
-- **Cardápio:** Fornece o retorno consolidado que será utilizado para montar o cardápio exibido aos clientes (ex.: não retornar produtos marcados como invisível).
+- **Runtime:** Node.js + TypeScript
+- **Framework:** Fastify
+- **Banco de dados:** PostgreSQL 16
+- **Migrations:** Prisma
+- **Queries SQL:** SQL puro (sem query builder do ORM)
+- **Validação de schemas:** TypeBox (via `@fastify/type-provider-typebox`)
+- **Testes:** Vitest
+- **Containerização:** Docker + Docker Compose
 
-### Funcionalidades opcionais
+## Estrutura do Projeto
 
-As funcionalidades abaixo **não serão consideradas na avaliação**, porém, caso você opte por implementá-las, **elas devem estar funcionando corretamente**.
+```
+src/
+├── config/
+│   └── env.ts                        # Variáveis de ambiente
+├── db/
+│   └── pool.ts                       # Conexão com o PostgreSQL (pg)
+├── modules/
+│   ├── menu/
+│   │   ├── menu.controller.ts
+│   │   ├── menu.repository.ts        # Query SQL consolidada do cardápio
+│   │   ├── menu.routes.ts
+│   │   └── menu.service.ts
+│   ├── products/
+│   │   ├── products.controller.ts
+│   │   ├── products.repository.ts    # Queries SQL de produtos
+│   │   ├── products.routes.ts
+│   │   ├── products.schema.ts        # Validação com TypeBox
+│   │   └── products.service.ts
+│   └── promotions/
+│       ├── promotions.controller.ts
+│       ├── promotions.repository.ts  # Queries SQL de promoções (transações)
+│       ├── promotions.routes.ts
+│       ├── promotions.schema.ts      # Validação com TypeBox
+│       └── promotions.service.ts
+├── shared/
+│   └── errors/
+│       ├── error-handler.ts          # Handler global de erros Fastify
+│       ├── not-found-error.ts
+│       └── validation-error.ts
+├── app.ts                            # Configuração do Fastify
+└── server.ts                         # Entrypoint do servidor
 
-- **Ordenação dos produtos:** Dá controle ao restaurante sobre a disposição dos produtos no cardápio.
-- **Tratamento de *timezone*:** Evita inconsistências em horários para restaurantes localizados em diferentes regiões do país.
+prisma/
+├── schema.prisma                     # Schema do Prisma (models + enums)
+└── migrations/
+    ├── *_init/                       # Tabelas iniciais
+    └── *_add_domain_constraints/     # CHECK constraints
 
-## O que nós vamos avaliar
+tests/
+└── unit/
+    ├── products.service.test.ts
+    ├── promotions.service.test.ts
+    └── menu.service.test.ts
+```
 
-- Qualidade, clareza e legibilidade do código
-- Estrutura, boas práticas e uso adequado do SQL
-- Organização do projeto e clareza da documentação
-- Quantidade e qualidade das funcionalidades entregues
-- Inclua um arquivo *README* que possua:
-    - Desafios e problemas encontrados durante o desenvolvimento
-    - Instruções detalhadas para rodar o projeto localmente
+## Como Rodar
 
-## Dicas
+### Pré-requisitos
 
-- Documente seu projeto em *markdown* (setup, estrutura e requisitos)
-- Tenha em mente a usabilidade, escalabilidade e colaboração
-- Estruture *commits* e *branches* de forma organizada
-- Os testes unitários contarão pontos para você
-- O uso de Docker é muito bem-vindo
-- Pense em código *production ready*
+- Node.js >= 18
+- Docker e Docker Compose (opcional, mas recomendado)
 
-## FAQ
+### 1. Subir o banco de dados
 
-### Posso utilizar JavaScript ao invés de TypeScript?
+```bash
+docker compose up -d
+```
 
-Não. O desafio deve ser desenvolvido inteiramente em TypeScript.
-Queremos avaliar sua familiaridade com *tipagem* estática, interfaces e boas práticas do ecossistema TypeScript.
+Isso inicia um container PostgreSQL 16 na porta **5433**.
 
-### Posso utilizar frameworks/bibliotecas?
+### 2. Configurar variáveis de ambiente
 
-Você pode usar bibliotecas como Fastify ou Express, mas não deve usar frameworks que impõem uma arquitetura específica (ex.: NestJS, Adonis).
+```bash
+cp .env.example .env
+```
 
-O objetivo é avaliar sua capacidade de estruturar o projeto por conta própria — desde a organização das pastas até a forma como você define rotas, middlewares e validações.
+O arquivo `.env.example` já contém a string de conexão correta para o Docker Compose.
 
-Frameworks opinados ocultam muitas decisões importantes e dificultam a avaliação do seu raciocínio técnico sobre arquitetura e design da aplicação.
+### 3. Instalar dependências
 
-### Preciso fazer as funcionalidades opcionais?
+```bash
+npm install
+```
 
-Não. Elas não contam pontos na avaliação, mas, caso você decida implementá-las, elas devem estar 100% funcionais. Essas funcionalidades servem apenas como um desafio extra para quem quiser ir além do essencial.
+### 4. Rodar as migrations
 
-### Preciso entregar testes automatizados?
+```bash
+npx prisma migrate deploy
+```
 
-Não é obrigatório, mas testes unitários e/ou de integração contam pontos positivos. Eles ajudam a mostrar como você estrutura o código para ser testável e como pensa em cenários de validação.
+### 5. Iniciar o servidor (desenvolvimento)
 
-### Posso usar Docker?
+```bash
+npm run dev
+```
 
-Sim! O uso de Docker é muito bem-vindo e facilita a execução do seu projeto por quem for avaliá-lo, garantindo que o ambiente funcione exatamente como você configurou.
+A API estará disponível em `http://localhost:3333`.
 
-### Preciso me preocupar com *commits* e estrutura do repositório?
+### Build para produção
 
-Sim. A forma como você organiza seus *commits*, *branches* e documentação também faz parte da avaliação.
+```bash
+npm run build
+npm start
+```
 
-*Commits* pequenos e descritivos, além de uma estrutura de pastas clara, facilitam o entendimento do seu raciocínio.
+### Rodar os testes
+
+```bash
+npm test          # modo watch
+npm run test:run  # execução única
+```
+
+## Decisões de Design
+
+### Camadas da aplicação
+
+A API segue uma arquitetura em camadas:
+
+- **Routes** — Definem as rotas e vinculam os schemas de validação (TypeBox) ao Fastify
+- **Controllers** — Recebem a request, delegam ao service e retornam a response
+- **Services** — Contêm a lógica de negócio (validações, regras, orquestração)
+- **Repositories** — Executam queries SQL puras diretamente no PostgreSQL
+
+Essa separação mantém o código testável e de fácil manutenção. O banco de dados é acessado exclusivamente via queries SQL raw, enquanto o Prisma é utilizado apenas para migrations e definição do schema.
+
+### Validação com TypeBox
+
+Todos os schemas de request (body, params) são definidos com TypeBox e registrados diretamente nas rotas do Fastify. Isso garante validação automática antes que o controller seja chamado, eliminando boilerplate de validação.
+
+### Transações para promoções
+
+A criação e atualização de promoções utilizam transações PostgreSQL para garantir atomicidade entre a inserção da promoção e de seus horários. Se qualquer etapa falhar, toda a operação é revertida.
+
+### Cardápio com JOIN LATERAL
+
+A query do cardápio utiliza `LEFT JOIN LATERAL` para buscar a melhor promoção (menor preço) ativa no momento para cada produto, consolidando tudo em uma única query.
+
+### Foreign Keys com CASCADE
+
+As relações entre tabelas utilizam `ON DELETE CASCADE`, garantindo que a exclusão de um produto remova suas promoções, e a exclusão de uma promoção remova seus horários.
+
+## Desafios e Problemas Encontrados
+
+1. **Consulta consolidada do cardápio** — O maior desafio foi construir a query SQL que retorna os produtos com suas promoções ativas no horário atual. A utilização de `LEFT JOIN LATERAL` com subquery correlacionada permitiu selecionar automaticamente a melhor promoção por produto.
+
+2. **Validação de horários** — Garantir que os horários de promoção tenham intervalo mínimo de 15 minutos e que o fim seja sempre posterior ao início exigiu validação tanto no schema (TypeBox) quanto no service (regras de negócio).
+
+3. **Transações com pg** — Diferente de ORMs que abstraem transações, aqui foi necessário gerenciar manualmente `BEGIN`, `COMMIT`, `ROLLBACK` e `client.release()` no repository de promoções.
+
+4. **Separação entre Prisma e queries raw** — Manter o Prisma apenas para migrations, enquanto toda a consulta de dados é feita em SQL puro, exigiu disciplina para não misturar abordagens.
